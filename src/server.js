@@ -1,5 +1,5 @@
-const { logger, changeLevel } = require('./logger');
-const { createServer: createProxyServer } = require('./proxy_server');
+import { logger, changeLevel } from './logger';
+import { createServer as createProxyServer } from './proxy_server';
 
 const DEFAULT_OPTIONS = {
   host: '127.0.0.1',
@@ -10,7 +10,7 @@ const DEFAULT_OPTIONS = {
   port: 8080,
 };
 
-function createServer(opts) {
+export function createServer(opts) {
   const options = Object.assign({}, DEFAULT_OPTIONS, opts);
 
   if(typeof options.level === 'string') {
@@ -26,7 +26,3 @@ function createServer(opts) {
 
   return createProxyServer(options).listen(port, host);
 }
-
-module.exports = {
-  createServer,
-};

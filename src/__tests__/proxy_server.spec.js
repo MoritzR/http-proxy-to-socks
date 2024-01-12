@@ -1,31 +1,33 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+
 const mockAgent = {};
 
-const mockOn = jest.fn();
+const mockOn = vi.fn();
 
-jest.mock('http', () => ({
-  request: jest.fn(() => ({
+vi.mock('http', () => ({
+  request: vi.fn(() => ({
     on: mockOn,
   })),
-  Server: jest.fn(function Server() {
-    this.addListener = jest.fn();
+  Server: vi.fn(function Server() {
+    this.addListener = vi.fn();
   }),
 }));
 
-jest.mock('https', () => ({
-  request: jest.fn(() => ({
+vi.mock('https', () => ({
+  request: vi.fn(() => ({
     on: mockOn,
   })),
-  Server: jest.fn(function Server() {
-    this.addListener = jest.fn();
+  Server: vi.fn(function Server() {
+    this.addListener = vi.fn();
   }),
 }));
 
-jest.mock('socks', () => ({
-  createConnection: jest.fn(),
-  Agent: jest.fn(() => mockAgent),
+vi.mock('socks', () => ({
+  createConnection: vi.fn(),
+  Agent: vi.fn(() => mockAgent),
 }));
 
-jest.mock('socks-proxy-agent', () => jest.fn(() => mockAgent));
+vi.mock('socks-proxy-agent', () => ({default: vi.fn(() => mockAgent) }));
 
 function last(array) {
   return array[array.length - 1];
@@ -35,18 +37,11 @@ function getLastMockOn(event) {
   return last(mockOn.mock.calls.filter(args => args[0] === event));
 }
 
-const http = require('http');
-const https = require('https');
-const Socks = require('socks');
-const SocksProxyAgent = require('socks-proxy-agent');
-const {
-  createServer,
-  getProxyObject,
-  parseProxyLine,
-  requestListener,
-  connectListener,
-  getProxyInfo,
-} = require('../proxy_server');
+import { request as _request, Server as _Server } from 'http';
+import { request as __request } from 'https';
+import { createConnection as _createConnection } from 'socks';
+import SocksProxyAgent from 'socks-proxy-agent';
+import { createServer, getProxyObject, parseProxyLine, requestListener, connectListener, getProxyInfo } from '../proxy_server';
 
 describe('proxy_server', () => {
   const requestURL = 'https://google.com';
@@ -80,34 +75,34 @@ describe('proxy_server', () => {
     ];
 
     request = {
-      on: jest.fn(),
-      pipe: jest.fn(),
+      on: vi.fn(),
+      pipe: vi.fn(),
       url: requestURL,
     };
 
     socksRequest = {
-      on: jest.fn(),
-      pipe: jest.fn(),
+      on: vi.fn(),
+      pipe: vi.fn(),
       url: requestURL.slice('https://'.length),
     };
 
     response = {
-      on: jest.fn(),
-      writeHead: jest.fn(),
-      end: jest.fn(),
+      on: vi.fn(),
+      writeHead: vi.fn(),
+      end: vi.fn(),
     };
 
     socketRequest = {
-      on: jest.fn(),
-      write: jest.fn(),
-      pipe: jest.fn(),
+      on: vi.fn(),
+      write: vi.fn(),
+      pipe: vi.fn(),
     };
 
     socket = {
-      on: jest.fn(),
-      pipe: jest.fn(),
-      write: jest.fn(),
-      resume: jest.fn(),
+      on: vi.fn(),
+      pipe: vi.fn(),
+      write: vi.fn(),
+      resume: vi.fn(),
     };
   });
 
@@ -177,7 +172,7 @@ describe('proxy_server', () => {
       requestListener(proxyList, { ...request, url: requestURL.replace(/https/g, 'http') }, response);
 
       const lastCall = last(SocksProxyAgent.mock.calls);
-      const httpLastCall = last(http.request.mock.calls);
+      const httpLastCall = last(_request.mock.calls);
 
       expect(lastCall[0].host).toBe(proxyList[0].socksProxy.host);
       expect(httpLastCall[0].agent === mockAgent).toBeTruthy();
@@ -187,7 +182,7 @@ describe('proxy_server', () => {
       requestListener(proxyList, request, response);
 
       const lastCall = last(SocksProxyAgent.mock.calls);
-      const httpLastCall = last(https.request.mock.calls);
+      const httpLastCall = last(__request.mock.calls);
 
       expect(lastCall[0].host).toBe(proxyList[0].socksProxy.host);
       expect(httpLastCall[0].agent === mockAgent).toBeTruthy();
@@ -212,7 +207,7 @@ describe('proxy_server', () => {
       const proxyResponse = {
         statusCode: 200,
         headers: {},
-        pipe: jest.fn(),
+        pipe: vi.fn(),
       };
 
       requestListener(proxyList, request, response);
@@ -232,7 +227,7 @@ describe('proxy_server', () => {
       const head = '';
       connectListener(proxyList, socksRequest, socketRequest, head);
 
-      const lastCreateConnectionCall = last(Socks.createConnection.mock.calls);
+      const lastCreateConnectionCall = last(_createConnection.mock.calls);
 
       expect(lastCreateConnectionCall[0].target.host).toBe('google.com');
     });
@@ -241,7 +236,7 @@ describe('proxy_server', () => {
       const head = '';
       connectListener(proxyList, socksRequest, socketRequest, head);
 
-      const lastCreateConnectionCall = last(Socks.createConnection.mock.calls);
+      const lastCreateConnectionCall = last(_createConnection.mock.calls);
 
       const error = new Error('500');
 
@@ -256,7 +251,7 @@ describe('proxy_server', () => {
 
       connectListener(proxyList, socksRequest, socketRequest, head);
 
-      const lastCreateConnectionCall = last(Socks.createConnection.mock.calls);
+      const lastCreateConnectionCall = last(_createConnection.mock.calls);
 
       lastCreateConnectionCall[1](null, socket);
 
@@ -277,7 +272,7 @@ describe('proxy_server', () => {
 
       createServer(options);
 
-      const { proxyList } = http.Server.mock.instances[0];
+      const { proxyList } = _Server.mock.instances[0];
 
       expect(proxyList[0].socksProxy.host).toBe('127.0.0.1');
       expect(proxyList[0].socksProxy.port).toBe(1080);
@@ -290,7 +285,7 @@ describe('proxy_server', () => {
 
       createServer(options);
 
-      const { addListener } = http.Server.mock.instances[0];
+      const { addListener } = _Server.mock.instances[0];
 
       const onRequestArgs = addListener.mock.calls.filter(args => args[0] === 'request');
       const onConnectArgs = addListener.mock.calls.filter(args => args[0] === 'connect');

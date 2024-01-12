@@ -1,5 +1,5 @@
-const winston = require('winston');
-const chalk = require('chalk');
+import winston from 'winston';
+import chalk from 'chalk';
 
 const { format, createLogger: createWinstonLogger, transports } = winston;
 const { Console } = transports;
@@ -43,7 +43,7 @@ function colorLevel(str) {
   return str;
 }
 
-function createLogger(level = 'warn') {
+export function createLogger(level = 'warn') {
   return createWinstonLogger({
     format: combine(printf(info =>
       `${getFormatedDate()} - ${colorLevel(info.level)} ${info.message}`)),
@@ -52,17 +52,11 @@ function createLogger(level = 'warn') {
   });
 }
 
-function changeLevel(logger, level) {
+export function changeLevel(logger, level) {
   logger.configure({
     level,
     transports: createTransports(),
   });
 }
 
-const logger = createLogger();
-
-module.exports = {
-  logger,
-  createLogger,
-  changeLevel,
-};
+export const logger = createLogger();

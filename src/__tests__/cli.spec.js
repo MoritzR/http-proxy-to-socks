@@ -1,4 +1,6 @@
-const { getOptionsArgs } = require('../cli');
+import { getOptionsArgs } from '../cli';
+
+import { describe, it, expect } from 'vitest';
 
 describe('cli', () => {
   describe('getOptionsArgs', () => {

@@ -1,8 +1,8 @@
-const { readFileSync } = require('fs');
-const { resolve } = require('path');
-const cli = require('commander');
-const { version } = require('../package.json');
-const { createServer } = require('./server');
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { version as _version, opts } from 'commander';
+import { version } from '../package.json';
+import { createServer } from './server';
 
 const optionNames = [
   'socks',
@@ -56,7 +56,7 @@ function getOptionsArgs(args) {
 }
 
 function main() {
-  cli.version(version)
+  _version(version)
     .option('-s, --socks [socks]', 'specify your socks proxy hosts, default: 127.0.0.1:1080')
     .option('-p, --port [port]', 'specify the listening port of http proxy server, default: 8080')
     .option('-l, --host [host]', 'specify the listening host of http proxy server, default: 127.0.0.1')
@@ -64,7 +64,7 @@ function main() {
     .option('--level [level]', 'log level, vals: info, error')
     .parse(process.argv);
 
-  const options = getOptionsArgs(cli.opts());
+  const options = getOptionsArgs(opts());
 
   let fileConfig = null;
 
@@ -77,7 +77,7 @@ function main() {
   createServer(options);
 }
 
-module.exports = {
+export {
   getOptionsArgs,
   main,
 };

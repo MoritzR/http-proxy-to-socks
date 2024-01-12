@@ -1,17 +1,17 @@
 // inspired by https://github.com/asluchevskiy/http-to-socks-proxy
-const util = require('util');
-const http = require('http');
-const https = require('https');
-const net = require('net');
-const Socks = require('socks');
-const SocksProxyAgent = require('socks-proxy-agent');
-const { logger } = require('./logger');
+import { inherits } from 'util';
+import { Server, request as _request } from 'http';
+import { request as __request } from 'https';
+import { Socket } from 'net';
+import { createConnection } from 'socks';
+import SocksProxyAgent from 'socks-proxy-agent';
+import { logger } from './logger';
 
 // object class definition
 
 function ProxyServer(options) {
   // TODO: start point
-  http.Server.call(this, () => { });
+  Server.call(this, () => { });
 
   this.proxyList = [];
 
@@ -36,14 +36,14 @@ function ProxyServer(options) {
   );
 }
 
-util.inherits(ProxyServer, http.Server);
+inherits(ProxyServer, Server);
 
 // listeners
 
 /**
  * called on HTTP targets
  */
-function requestListener(proxyList, request, response) {
+export function requestListener(proxyList, request, response) {
   logger.info(`request: ${request.url}`);
 
   const target = new URL(request.url);
@@ -60,7 +60,7 @@ function requestListener(proxyList, request, response) {
 /**
  * called on HTTPs targets
  */
-function connectListener(proxyList, request, socketRequest, head) {
+export function connectListener(proxyList, request, socketRequest, head) {
   logger.info(`connect: ${request.url}`);
 
   const target = new URL(`http://${request.url}`); // connect listeners don't have the protocol in the url
@@ -110,7 +110,7 @@ function onSocksConnect(target, request, socketRequest, head, proxy) {
     }
   });
 
-  Socks.createConnection(options, (error, _socket) => {
+  createConnection(options, (error, _socket) => {
     socket = _socket;
 
     if(error) {
@@ -143,7 +143,7 @@ function onNoProxyRequest(target, req, res) {
 function onNoProxyConnect(target, req, socketRequest, head) {
   // Connect to an origin server
   logger.info(`forwarding HTTPS for ${target} without tunneling`);
-  const socket = new net.Socket();
+  const socket = new Socket();
 
   socketRequest.on('error', (err) => {
     logger.error(`Error on request socket: ${err.message}`);
@@ -180,7 +180,7 @@ function sendProxyRequest(uri, request, response, agent) {
     agent,
   };
 
-  const proxyRequest = uri.protocol === 'http:' ? http.request(options) : https.request(options);
+  const proxyRequest = uri.protocol === 'http:' ? _request(options) : __request(options);
 
   request.on('error', (err) => {
     logger.error(`${err.message}`);
@@ -207,7 +207,7 @@ function getPortFromUrl(uri) {
   return uri.port || (uri.protocol === 'http:' ? 80 : 443);
 }
 
-function getProxyInfo(proxyList, target) {
+export function getProxyInfo(proxyList, target) {
   let proxyEntry = proxyList
     .find(el =>
       (!el.whitelist || regexListMatchesString(el.whitelist, target.hostname)) &&
@@ -221,7 +221,7 @@ function regexListMatchesString(list, string) {
   return !!list.find(regEx => regEx.test(string));
 }
 
-function getProxyObject(host, port, login, password) {
+export function getProxyObject(host, port, login, password) {
   return {
     host,
     port: parseInt(port, 10),
@@ -230,7 +230,7 @@ function getProxyObject(host, port, login, password) {
   };
 }
 
-function parseProxyLine(line) {
+export function parseProxyLine(line) {
 
   const credentials = line.indexOf('@') > 0 ? line.substring(0, line.indexOf('@')).split(':') : [];
   const proxyInfo = line.substring(line.indexOf('@') + 1).split(':');
@@ -244,11 +244,4 @@ function parseProxyLine(line) {
 
 // exports
 
-module.exports = {
-  createServer: options => new ProxyServer(options),
-  requestListener,
-  connectListener,
-  getProxyObject,
-  parseProxyLine,
-  getProxyInfo,
-};
+export const createServer = options => new ProxyServer(options);

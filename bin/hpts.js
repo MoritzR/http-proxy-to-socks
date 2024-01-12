@@ -1,2 +1,3 @@
 #! /usr/bin/env node
-require('../src/cli').main();
+import { main } from '../src/cli';
+main()

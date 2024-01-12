@@ -1,7 +1,9 @@
-const server = require('../server');
+import { createServer } from '../server';
+
+import { describe, it, expect } from 'vitest';
 
 describe('server', () => {
   it('should export `createServer`', () => {
-    expect(typeof server.createServer).toBe('function');
+    expect(typeof createServer).toBe('function');
   });
 });
