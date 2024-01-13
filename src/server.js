@@ -1,5 +1,5 @@
-import { logger, changeLevel } from './logger';
-import { createServer as createProxyServer } from './proxy_server';
+import { logger, changeLevel } from './logger.js';
+import { createServer as createProxyServer } from './proxy_server.js';
 
 const DEFAULT_OPTIONS = {
   host: '127.0.0.1',

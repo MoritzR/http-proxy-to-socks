@@ -1,8 +1,7 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { version as _version, opts } from 'commander';
-import { version } from '../package.json';
-import { createServer } from './server';
+import { program } from 'commander';
+import { createServer } from './server.js';
 
 const optionNames = [
   'socks',
@@ -56,7 +55,7 @@ function getOptionsArgs(args) {
 }
 
 function main() {
-  _version(version)
+  program
     .option('-s, --socks [socks]', 'specify your socks proxy hosts, default: 127.0.0.1:1080')
     .option('-p, --port [port]', 'specify the listening port of http proxy server, default: 8080')
     .option('-l, --host [host]', 'specify the listening host of http proxy server, default: 127.0.0.1')
@@ -64,7 +63,7 @@ function main() {
     .option('--level [level]', 'log level, vals: info, error')
     .parse(process.argv);
 
-  const options = getOptionsArgs(opts());
+  const options = getOptionsArgs(program.opts());
 
   let fileConfig = null;
 

@@ -5,7 +5,7 @@ import { request as __request } from 'https';
 import { Socket } from 'net';
 import { createConnection } from 'socks';
 import SocksProxyAgent from 'socks-proxy-agent';
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 // object class definition
 
